@@ -1,0 +1,22 @@
+{$MCP_DOMAIN} {
+	# Caddy auto-provisions and renews a Let's Encrypt TLS cert for
+	# {$MCP_DOMAIN} the first time it starts -- just make sure the
+	# domain's A record points at this server's public IP first.
+
+	# Unauthenticated health check for uptime monitors (UptimeRobot,
+	# healthchecks.io, etc.) -- deliberately does NOT touch mcp-server,
+	# so it only proves Caddy/TLS/DNS are alive, not the MCP backend.
+	handle /health {
+		respond "OK" 200
+	}
+
+	@authorized {
+		header Authorization "Bearer {$MCP_BEARER_TOKEN}"
+	}
+
+	reverse_proxy @authorized mcp-server:8000
+
+	# Anything without the right bearer token gets a bare 401, not a
+	# proxied response -- so it never reaches the MCP server at all.
+	respond 401
+}

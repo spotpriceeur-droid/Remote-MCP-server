@@ -1,0 +1,77 @@
+services:
+  timescaledb:
+    image: timescale/timescaledb:latest-pg16
+    environment:
+      POSTGRES_PASSWORD: ${TIMESCALE_PASSWORD}
+    volumes:
+      - tsdb_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    # Not exposed to the host/internet -- only reachable by other
+    # containers on the compose network, by service name "timescaledb".
+
+  mcp-server:
+    build: .
+    environment:
+      TIMESCALE_HOST: timescaledb
+      TIMESCALE_PASSWORD: ${TIMESCALE_PASSWORD}
+      MCP_TRANSPORT: streamable-http
+      MCP_HOST: 0.0.0.0
+      MCP_PORT: 8000
+      DONATE_URL: ${DONATE_URL:-}
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      # Internal check only (bypasses Caddy's bearer-token auth, since
+      # this runs container-to-container on the compose network, not
+      # from the internet). A non-empty response means the process is
+      # up and answering.
+      test: ["CMD-SHELL", "curl -sf -o /dev/null http://localhost:8000/mcp || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    # No "ports:" here on purpose -- Caddy is the only thing that talks
+    # to this container from outside the compose network.
+
+  scheduler:
+    build: .
+    command: ["uv", "run", "scheduler.py"]
+    environment:
+      TIMESCALE_HOST: timescaledb
+      TIMESCALE_PASSWORD: ${TIMESCALE_PASSWORD}
+      BACKUP_KEEP_DAYS: ${BACKUP_KEEP_DAYS:-7}
+    volumes:
+      - db_backups:/app/backups
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      MCP_DOMAIN: ${MCP_DOMAIN}
+      MCP_BEARER_TOKEN: ${MCP_BEARER_TOKEN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - mcp-server
+    restart: unless-stopped
+
+volumes:
+  tsdb_data:
+  caddy_data:
+  caddy_config:
+  db_backups:

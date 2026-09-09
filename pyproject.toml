@@ -1,0 +1,12 @@
+[project]
+name = "energi-dk"
+version = "0.1.0"
+description = "MCP server for Danish/Nordic day-ahead electricity prices (Energi Data Service + TimescaleDB)"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp[cli]>=1.6.0,<2",
+    "requests>=2.31",
+    "pandas>=2.0",
+    "psycopg2-binary>=2.9",
+]
