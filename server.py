@@ -36,6 +36,7 @@ or, once added to an MCP client's config, the client starts it for you.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 from collections import Counter
@@ -359,6 +360,24 @@ def support_this_service() -> str:
     )
 
 
+# --------------------------------------------------------------------------
+# Background refresh helper (used by the /refresh HTTP route)
+# --------------------------------------------------------------------------
+
+async def _do_refresh_background() -> None:
+    """
+    Runs refresh_database() in a thread pool so the event loop is never
+    blocked. Called via asyncio.create_task() from the /refresh route so
+    the HTTP response can return immediately (before the pipeline finishes).
+    """
+    loop = asyncio.get_event_loop()
+    try:
+        result = await loop.run_in_executor(None, refresh_database)
+        logger.info("Background refresh complete: %s", result)
+    except Exception as exc:
+        logger.error("Background refresh failed: %s", exc)
+
+
 if __name__ == "__main__":
     transport = os.environ.get("MCP_TRANSPORT", "stdio")
     if transport == "streamable-http":
@@ -373,7 +392,6 @@ if __name__ == "__main__":
             enable_dns_rebinding_protection=False
         )
 
-        # Add /health as a custom route inside FastMCP
         @mcp.custom_route("/health", methods=["GET"])
         async def health(request):
             return JSONResponse({"status": "ok"})
@@ -384,11 +402,10 @@ if __name__ == "__main__":
             token = os.environ.get("MCP_BEARER_TOKEN", "")
             if auth != f"Bearer {token}":
                 return JSONResponse({"error": "Unauthorized"}, status_code=401)
-            try:
-                result = refresh_database()
-                return JSONResponse({"status": "ok", "result": result})
-            except Exception as e:
-                return JSONResponse({"status": "error", "detail": str(e)}, status_code=500)
+            # Fire refresh in background — respond immediately so cron job
+            # doesn't time out waiting for the full pipeline to complete.
+            asyncio.create_task(_do_refresh_background())
+            return JSONResponse({"status": "accepted", "detail": "Refresh started in background."})
 
         logger.info("Starting on %s:%s", mcp.settings.host, mcp.settings.port)
         mcp.run(transport="streamable-http")
