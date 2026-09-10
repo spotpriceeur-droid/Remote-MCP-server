@@ -366,7 +366,8 @@ if __name__ == "__main__":
         # can forward requests to it. Path defaults to /mcp.
         mcp.settings.host = os.environ.get("MCP_HOST", "0.0.0.0")
         mcp.settings.port = int(os.environ.get("MCP_PORT", "8000"))
-        mcp.settings.allowed_hosts = ["*"]   
+        
+        os.environ.setdefault("STARLETTE_ALLOWED_HOSTS", "*")
         logger.info(
             "Starting MCP server with streamable-http transport on %s:%s",
             mcp.settings.host,
