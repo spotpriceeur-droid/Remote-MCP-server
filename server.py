@@ -367,7 +367,9 @@ if __name__ == "__main__":
         mcp.settings.host = os.environ.get("MCP_HOST", "0.0.0.0")
         mcp.settings.port = int(os.environ.get("MCP_PORT", "8000"))
         
-        os.environ.setdefault("STARLETTE_ALLOWED_HOSTS", "*")
+        from mcp.server.transport_security import TransportSecuritySettings
+          mcp.settings.transport_security = TransportSecuritySettings(
+          enable_dns_rebinding_protection=False )
         logger.info(
             "Starting MCP server with streamable-http transport on %s:%s",
             mcp.settings.host,
