@@ -362,47 +362,17 @@ def support_this_service() -> str:
 if __name__ == "__main__":
     transport = os.environ.get("MCP_TRANSPORT", "stdio")
     if transport == "streamable-http":
+        from mcp.server.transport_security import TransportSecuritySettings
         mcp.settings.host = os.environ.get("MCP_HOST", "0.0.0.0")
         mcp.settings.port = int(os.environ.get("MCP_PORT", "8000"))
-        from mcp.server.transport_security import TransportSecuritySettings
         mcp.settings.transport_security = TransportSecuritySettings(
             enable_dns_rebinding_protection=False
         )
-
-        # Health check endpoint for Render
-        from starlette.responses import JSONResponse
-        from starlette.routing import Route
-        from starlette.applications import Starlette
-
-        async def health(request):
-            return JSONResponse({"status": "ok"})
-        async def refresh(request):
-          # Bearer token check
-          auth = request.headers.get("authorization", "")
-          token = os.environ.get("MCP_BEARER_TOKEN", "")
-          if auth != f"Bearer {token}":
-            return JSONResponse({"error": "Unauthorized"}, status_code=401)
-          try:
-            result = refresh_database()
-            return JSONResponse({"status": "ok", "result": result})
-          except Exception as e:
-              return JSONResponse({"status": "error", "detail": str(e)}, status_code=500)
-
-      
-        mcp_app = mcp.streamable_http_app()
-
-        from starlette.routing import Mount
-        app = Starlette(routes=[
-                Route("/health", health),
-                Route("/refresh", refresh, methods=["POST"]),  # ← ఈ line add చేయండి
-                Mount("/", app=mcp_app),])
-
-        import uvicorn
         logger.info(
             "Starting MCP server with streamable-http transport on %s:%s",
             mcp.settings.host,
             mcp.settings.port,
         )
-        uvicorn.run(app, host=mcp.settings.host, port=mcp.settings.port)
+        mcp.run(transport="streamable-http")
     else:
         mcp.run(transport="stdio")
