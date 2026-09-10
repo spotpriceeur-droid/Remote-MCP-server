@@ -363,16 +363,44 @@ if __name__ == "__main__":
     transport = os.environ.get("MCP_TRANSPORT", "stdio")
     if transport == "streamable-http":
         from mcp.server.transport_security import TransportSecuritySettings
+        from starlette.applications import Starlette
+        from starlette.responses import JSONResponse
+        from starlette.routing import Mount, Route
+        import uvicorn
+
         mcp.settings.host = os.environ.get("MCP_HOST", "0.0.0.0")
         mcp.settings.port = int(os.environ.get("MCP_PORT", "8000"))
         mcp.settings.transport_security = TransportSecuritySettings(
             enable_dns_rebinding_protection=False
         )
+
+        async def health(request):
+            return JSONResponse({"status": "ok"})
+
+        async def refresh(request):
+            auth = request.headers.get("authorization", "")
+            token = os.environ.get("MCP_BEARER_TOKEN", "")
+            if auth != f"Bearer {token}":
+                return JSONResponse({"error": "Unauthorized"}, status_code=401)
+            try:
+                result = refresh_database()
+                return JSONResponse({"status": "ok", "result": result})
+            except Exception as e:
+                return JSONResponse({"status": "error", "detail": str(e)}, status_code=500)
+
+        mcp_app = mcp.http_app(path="/mcp")
+
+        app = Starlette(routes=[
+            Route("/health", health),
+            Route("/refresh", refresh, methods=["POST"]),
+            Mount("/", app=mcp_app),
+        ])
+
         logger.info(
             "Starting MCP server with streamable-http transport on %s:%s",
             mcp.settings.host,
             mcp.settings.port,
         )
-        mcp.run(transport="streamable-http")
+        uvicorn.run(app, host=mcp.settings.host, port=mcp.settings.port)
     else:
         mcp.run(transport="stdio")
