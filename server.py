@@ -368,8 +368,8 @@ if __name__ == "__main__":
         mcp.settings.port = int(os.environ.get("MCP_PORT", "8000"))
         
         from mcp.server.transport_security import TransportSecuritySettings
-          mcp.settings.transport_security = TransportSecuritySettings(
-          enable_dns_rebinding_protection=False )
+        mcp.settings.transport_security = TransportSecuritySettings(
+        enable_dns_rebinding_protection=False )
         logger.info(
             "Starting MCP server with streamable-http transport on %s:%s",
             mcp.settings.host,
