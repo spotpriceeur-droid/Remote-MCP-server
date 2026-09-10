@@ -376,14 +376,26 @@ if __name__ == "__main__":
 
         async def health(request):
             return JSONResponse({"status": "ok"})
+       async def refresh(request):
+          # Bearer token check
+          auth = request.headers.get("authorization", "")
+          token = os.environ.get("MCP_BEARER_TOKEN", "")
+          if auth != f"Bearer {token}":
+            return JSONResponse({"error": "Unauthorized"}, status_code=401)
+          try:
+            result = refresh_database()
+            return JSONResponse({"status": "ok", "result": result})
+          except Exception as e:
+              return JSONResponse({"status": "error", "detail": str(e)}, status_code=500)
 
+      
         mcp_app = mcp.streamable_http_app()
 
         from starlette.routing import Mount
-        app = Starlette(routes=[
-            Route("/health", health),
-            Mount("/", app=mcp_app),
-        ])
+          app = Starlette(routes=[
+                Route("/health", health),
+                Route("/refresh", refresh, methods=["POST"]),  # ← ఈ line add చేయండి
+                Mount("/", app=mcp_app),])
 
         import uvicorn
         logger.info(
