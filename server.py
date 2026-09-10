@@ -376,7 +376,7 @@ if __name__ == "__main__":
 
         async def health(request):
             return JSONResponse({"status": "ok"})
-       async def refresh(request):
+        async def refresh(request):
           # Bearer token check
           auth = request.headers.get("authorization", "")
           token = os.environ.get("MCP_BEARER_TOKEN", "")
