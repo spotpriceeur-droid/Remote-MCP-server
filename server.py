@@ -363,10 +363,10 @@ if __name__ == "__main__":
     transport = os.environ.get("MCP_TRANSPORT", "stdio")
     if transport == "streamable-http":
         from mcp.server.transport_security import TransportSecuritySettings
+        import uvicorn
         from starlette.applications import Starlette
         from starlette.responses import JSONResponse
-        from starlette.routing import Mount, Route
-        import uvicorn
+        from starlette.routing import Route, Mount
 
         mcp.settings.host = os.environ.get("MCP_HOST", "0.0.0.0")
         mcp.settings.port = int(os.environ.get("MCP_PORT", "8000"))
@@ -388,7 +388,7 @@ if __name__ == "__main__":
             except Exception as e:
                 return JSONResponse({"status": "error", "detail": str(e)}, status_code=500)
 
-        mcp_app = mcp.http_app(path="/mcp")
+        mcp_app = mcp.get_asgi_app()
 
         app = Starlette(routes=[
             Route("/health", health),
@@ -396,11 +396,7 @@ if __name__ == "__main__":
             Mount("/", app=mcp_app),
         ])
 
-        logger.info(
-            "Starting MCP server with streamable-http transport on %s:%s",
-            mcp.settings.host,
-            mcp.settings.port,
-        )
+        logger.info("Starting on %s:%s", mcp.settings.host, mcp.settings.port)
         uvicorn.run(app, host=mcp.settings.host, port=mcp.settings.port)
     else:
         mcp.run(transport="stdio")
