@@ -392,7 +392,7 @@ if __name__ == "__main__":
         mcp_app = mcp.streamable_http_app()
 
         from starlette.routing import Mount
-          app = Starlette(routes=[
+        app = Starlette(routes=[
                 Route("/health", health),
                 Route("/refresh", refresh, methods=["POST"]),  # ← ఈ line add చేయండి
                 Mount("/", app=mcp_app),])
