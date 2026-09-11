@@ -87,5 +87,6 @@ class Config:
             user=os.environ.get("TIMESCALE_USER", DatabaseConfig().user),
             password=os.environ.get("TIMESCALE_PASSWORD", DatabaseConfig().password),
             table_name=os.environ.get("TIMESCALE_TABLE", DatabaseConfig().table_name),
+            sslmode=os.environ.get("TIMESCALE_SSL", "disable"),
         )
         return Config(database=database)
