@@ -55,6 +55,7 @@ class DatabaseConfig:
     table_name: str = "day_ahead_prices"
     # Rows per INSERT ... ON CONFLICT batch.
     batch_size: int = 1000
+    sslmode: str = "disable"
 
 
 @dataclass(frozen=True)
