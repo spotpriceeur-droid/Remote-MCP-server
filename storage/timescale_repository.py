@@ -42,6 +42,7 @@ class TimescaleRepository:
                 dbname=self.config.dbname,
                 user=self.config.user,
                 password=self.config.password,
+                sslmode=self.config.sslmode,
             )
         except psycopg2.OperationalError as exc:
             raise DatabaseConnectionError(
