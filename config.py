@@ -25,7 +25,7 @@ class APIConfig:
     end: str = field(default_factory=lambda: datetime.now().strftime("%Y-%m-%dT%H:%M"))
 
     # DayAheadPrices only has 15-min resolution from this point onward.
-    dayahead_start: str = "2026-01-01T00:00"
+    dayahead_start: str = "2025-09-30T00:00"
 
     # Elspotprices: pull the last 4 years of hourly history.
     elspot_start: str = field(
