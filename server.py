@@ -166,7 +166,10 @@ def _to_dataframe(records: list[dict[str, Any]]) -> pd.DataFrame:
 
 
 def _parse_ts(value: str) -> pd.Timestamp:
-    return pd.Timestamp(value)
+    ts = pd.Timestamp(value)
+    if ts.tzinfo is None:
+        ts = ts.tz_localize("UTC")
+    return ts
 
 
 # --------------------------------------------------------------------------
