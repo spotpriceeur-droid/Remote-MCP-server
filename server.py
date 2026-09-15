@@ -66,13 +66,23 @@ KNOWN_ZONES = ["DK1", "DK2", "SE1", "SE2", "SE3", "SE4", "NO1", "NO2", "NO3", "N
 # Shared helpers
 # --------------------------------------------------------------------------
 
+# Global DB connection — reuse చేస్తాం, every request కి new connection వద్దు
+_repository = None
+
 def _get_repository(config: Config) -> Optional[TimescaleRepository]:
-    """Tries to connect to TimescaleDB; returns None (not an exception) if
-    it's unreachable, so callers can fall back to the live API instead."""
+    global _repository
+    if _repository is not None:
+        try:
+            # Connection alive గా ఉందా check చేయి
+            _repository.conn.cursor().execute("SELECT 1")
+            return _repository
+        except Exception:
+            _repository = None
     try:
-        return TimescaleRepository(config.database)
+        _repository = TimescaleRepository(config.database)
+        return _repository
     except PipelineError as exc:
-        logger.warning("TimescaleDB unavailable, will use Energi Data Service directly: %s", exc)
+        logger.warning("TimescaleDB unavailable: %s", exc)
         return None
 
 
