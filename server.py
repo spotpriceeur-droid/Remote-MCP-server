@@ -59,7 +59,7 @@ logger = logging.getLogger(__name__)
 mcp = FastMCP("energi-dk")
 
 CUTOFF = pd.Timestamp("2025-10-01T00:00", tz="UTC")
-KNOWN_ZONES = ["DK1", "DK2", "SE1", "SE2", "SE3", "SE4", "NO1", "NO2", "NO3", "NO4", "NO5", "FI"]
+KNOWN_ZONES = ["DK1", "DK2", "DE", "NO2", "SE3", "SE4"]
 
 
 # --------------------------------------------------------------------------
