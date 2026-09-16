@@ -601,7 +601,7 @@
 
   <div class="negative-box" style="margin-top:1.8rem">
     <h3>⬇️ Negative pricing</h3>
-    <p>Negative prices occur when generation (often wind or solar) exceeds demand and inflexible plants pay to offload power. This server tracks these events across Nordic zones in detail — frequency, duration, depth — giving researchers the data they need to study grid flexibility and renewable integration.</p>
+    <p>Negative prices occur when generation (often wind or solar) exceeds demand and inflexible plants pay to offload power. This server tracks these events across Nordic zones in detail — frequenc[...]
   </div>
 </section>
 
@@ -673,62 +673,6 @@
 </section>
 
 <hr class="divider">
-
-<section class="section">
-  <h2 class="section-title">Connect to Claude</h2>
-  <p style="color:var(--ink-soft);font-size:0.95rem;margin-bottom:1.4rem;">Add the MCP server to Claude in a few steps — no coding required.</p>
-  <div class="connect-box">
-
-    <div class="connect-step">
-      <div class="step-num">1</div>
-      <div class="step-body">
-        <h4>Open Claude Settings</h4>
-        <p>Go to <strong>claude.ai</strong> → click your profile icon (top right) → <strong>Settings</strong> → <strong>Connectors</strong>.</p>
-      </div>
-    </div>
-
-    <div class="connect-step">
-      <div class="step-num">2</div>
-      <div class="step-body">
-        <h4>Add a new MCP server</h4>
-        <p>Click <strong>"Add connector"</strong> and paste the server URL below into the URL field.</p>
-        <div class="code-block">
-          <code id="mcp-url">https://remote-mcp-server-1gid.onrender.com</code>
-          <button class="copy-btn" onclick="copyUrl()">Copy</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="connect-step">
-      <div class="step-num">3</div>
-      <div class="step-body">
-        <h4>Name it and save</h4>
-        <p>Give it a name like <strong>spot.priceeur</strong> and click <strong>Save</strong>. The integration will appear in your Claude sidebar.</p>
-      </div>
-    </div>
-
-    <div class="connect-step">
-      <div class="step-num">4</div>
-      <div class="step-body">
-        <h4>Start asking questions</h4>
-        <p>Open a new chat, enable the integration, and ask things like: <em>"Show me DK1 spot prices for January 2024"</em> or <em>"How many negative pricing hours occurred in DE last year?"</em></p>
-      </div>
-    </div>
-
-  </div>
-</section>
-
-<script>
-function copyUrl() {
-  const url = document.getElementById('mcp-url').textContent;
-  navigator.clipboard.writeText(url).then(() => {
-    const btn = document.querySelector('.copy-btn');
-    btn.textContent = 'Copied!';
-    btn.classList.add('copied');
-    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
-  });
-}
-</script>
 
 <footer>
   spot.priceeur &nbsp;·&nbsp; <a href="mailto:spot.priceeur@gmail.com">spot.priceeur@gmail.com</a>
