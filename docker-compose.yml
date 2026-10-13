@@ -17,8 +17,12 @@ services:
   mcp-server:
     build: .
     environment:
-      TIMESCALE_HOST: timescaledb
+      TIMESCALE_HOST: ${TIMESCALE_HOST:-timescaledb}
+      TIMESCALE_PORT: ${TIMESCALE_PORT:-5432}
+      TIMESCALE_DBNAME: ${TIMESCALE_DBNAME:-postgres}
+      TIMESCALE_USER: ${TIMESCALE_USER:-postgres}
       TIMESCALE_PASSWORD: ${TIMESCALE_PASSWORD}
+      TIMESCALE_SSL: ${TIMESCALE_SSL:-disable}
       MCP_TRANSPORT: streamable-http
       MCP_HOST: 0.0.0.0
       MCP_PORT: 8000
@@ -44,8 +48,12 @@ services:
     build: .
     command: ["uv", "run", "scheduler.py"]
     environment:
-      TIMESCALE_HOST: timescaledb
+      TIMESCALE_HOST: ${TIMESCALE_HOST:-timescaledb}
+      TIMESCALE_PORT: ${TIMESCALE_PORT:-5432}
+      TIMESCALE_DBNAME: ${TIMESCALE_DBNAME:-postgres}
+      TIMESCALE_USER: ${TIMESCALE_USER:-postgres}
       TIMESCALE_PASSWORD: ${TIMESCALE_PASSWORD}
+      TIMESCALE_SSL: ${TIMESCALE_SSL:-disable}
       BACKUP_KEEP_DAYS: ${BACKUP_KEEP_DAYS:-7}
     volumes:
       - db_backups:/app/backups

@@ -66,6 +66,38 @@ docker run -d --name timescaledb -p 5432:5432 -e POSTGRES_PASSWORD=yourpassword 
 Set the password to match, either in `config.py` (`DatabaseConfig.password`)
 or via the `TIMESCALE_PASSWORD` environment variable.
 
+### Use an Aiven PostgreSQL service
+
+Set the following environment variables for Docker Compose. Get the host,
+port, database name, and username from the service's connection information
+in the Aiven console. Keep the password in a Codespaces secret or another
+secret store; do not commit it.
+
+```text
+TIMESCALE_HOST=<Aiven service hostname>
+TIMESCALE_PORT=<Aiven service port>
+TIMESCALE_DBNAME=<Aiven database name>
+TIMESCALE_USER=<Aiven username>
+TIMESCALE_PASSWORD=<Aiven password>
+TIMESCALE_SSL=require
+```
+
+Compose passes these settings to both the MCP server and scheduler. If they
+are omitted, the stack uses its local `timescaledb` container as before.
+
+### Schedule refreshes with GitHub Actions
+
+The workflow in `.github/workflows/refresh-aiven.yml` runs the ingestion
+pipeline every six hours (UTC), and can also be started manually from the
+repository's Actions tab. It connects directly to Aiven; it does not call the
+Render `/refresh` URL.
+
+Add these repository Actions secrets under **Settings > Secrets and
+variables > Actions**: `TIMESCALE_HOST`, `TIMESCALE_PORT`,
+`TIMESCALE_DBNAME`, `TIMESCALE_USER`, and `TIMESCALE_PASSWORD`. Copy the
+connection values from Aiven's service overview and keep the password in a
+secret. The workflow enables SSL with `TIMESCALE_SSL=require`.
+
 ## 3. Connect it to your MCP client
 
 ### Claude Desktop / Claude Code
