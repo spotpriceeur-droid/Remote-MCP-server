@@ -1,0 +1,53 @@
+name: Export 2025 prices from Aiven
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: >-
+          python -m pip install
+          'mcp[cli]>=1.6.0,<2'
+          'requests>=2.31'
+          'pandas>=2.0'
+          'psycopg2-binary>=2.9'
+
+      - name: Export CSV files
+        env:
+          TIMESCALE_HOST: ${{ secrets.TIMESCALE_HOST }}
+          TIMESCALE_PORT: ${{ secrets.TIMESCALE_PORT }}
+          TIMESCALE_DBNAME: ${{ secrets.TIMESCALE_DBNAME }}
+          TIMESCALE_USER: ${{ secrets.TIMESCALE_USER }}
+          TIMESCALE_PASSWORD: ${{ secrets.TIMESCALE_PASSWORD }}
+          TIMESCALE_SSL: require
+        run: |
+          for name in TIMESCALE_HOST TIMESCALE_PORT TIMESCALE_DBNAME TIMESCALE_USER TIMESCALE_PASSWORD; do
+            if [[ -z "${!name}" ]]; then
+              echo "::error::Missing GitHub Actions secret: ${name}"
+              exit 1
+            fi
+          done
+          python download_dk_dayahead_prices.py
+
+      - name: Upload CSV files
+        uses: actions/upload-artifact@v4
+        with:
+          name: dayahead-dk1-dk2-2025-csv
+          path: |
+            dayahead_DK1_DK2_2025.csv
+            dayahead_DK1_DK2_2025_hourly.csv
+          if-no-files-found: error
+          retention-days: 14

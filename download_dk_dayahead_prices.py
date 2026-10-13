@@ -1,53 +1,65 @@
 #!/usr/bin/env python3
-"""Download DK1 and DK2 day-ahead prices (2025 and 2026) from Energi Data Service.
+"""Export DK1 and DK2 prices for 2025 from the configured TimescaleDB.
 
-Usage:  python download_dk_dayahead_prices.py
-Needs:  pip install requests pandas
+Usage: python download_dk_dayahead_prices.py
+Requires TIMESCALE_HOST, TIMESCALE_PORT, TIMESCALE_DBNAME,
+TIMESCALE_USER, and TIMESCALE_PASSWORD. Set TIMESCALE_SSL=require for Aiven.
 
 Output (in the current folder):
-  dayahead_DK1_DK2_2025.csv   (native resolution: hourly, 15-min from 2025-10-01)
-  dayahead_DK1_DK2_2026.csv
-  dayahead_DK1_DK2_2025_hourly.csv   (hourly averages, wide format)
-  dayahead_DK1_DK2_2026_hourly.csv
+  dayahead_DK1_DK2_2025.csv         (database resolution, includes source)
+  dayahead_DK1_DK2_2025_hourly.csv  (hourly EUR averages, wide format)
 """
-import json
-import requests
 import pandas as pd
 
-URL = "https://api.energidataservice.dk/dataset/DayAheadPrices"
+from config import Config
+from storage.timescale_repository import TimescaleRepository
+
+START_UTC = "2025-01-01T00:00:00+00:00"
+END_UTC = "2026-01-01T00:00:00+00:00"
+ZONES = ("DK1", "DK2")
 
 
-def fetch(start, end):
-    params = {
-        "start": start,
-        "end": end,
-        "filter": json.dumps({"PriceArea": ["DK1", "DK2"]}),
-        "sort": "TimeUTC asc",
-        "limit": 0,
-        "timezone": "utc",
-    }
-    r = requests.get(URL, params=params, timeout=120)
-    r.raise_for_status()
-    df = pd.DataFrame(r.json()["records"])
+def fetch_from_database(repo: TimescaleRepository) -> pd.DataFrame:
+    records = []
+    for zone in ZONES:
+        zone_records = repo.fetch_range(START_UTC, END_UTC, zone)
+        if not zone_records:
+            raise RuntimeError(f"No 2025 records found in the database for {zone}.")
+        records.extend(zone_records)
+
+    df = pd.DataFrame(records).rename(columns={
+        "zone": "PriceArea",
+        "time_utc": "TimeUTC",
+        "price_eur": "DayAheadPriceEUR",
+        "price_dkk": "DayAheadPriceDKK",
+        "source": "Source",
+    })
     df["TimeUTC"] = pd.to_datetime(df["TimeUTC"], utc=True)
-    return df[["TimeUTC", "TimeDK", "PriceArea", "DayAheadPriceEUR"]]
+    df["TimeDK"] = df["TimeUTC"].dt.tz_convert("Europe/Copenhagen")
+    return df[[
+        "TimeUTC", "TimeDK", "PriceArea", "DayAheadPriceEUR",
+        "DayAheadPriceDKK", "Source",
+    ]].sort_values(["TimeUTC", "PriceArea"]).reset_index(drop=True)
 
 
 def main():
-    for year in (2025, 2026):
-        df = fetch(f"{year}-01-01T00:00", f"{year + 1}-01-01T00:00")
-        df.to_csv(f"dayahead_DK1_DK2_{year}.csv", index=False)
+    repo = TimescaleRepository(Config.from_env().database)
+    try:
+        df = fetch_from_database(repo)
+    finally:
+        repo.close()
 
-        hourly = (
-            df.set_index("TimeUTC")
-            .groupby("PriceArea")["DayAheadPriceEUR"]
-            .resample("1h")
-            .mean()
-            .unstack(0)
-            .rename(columns={"DK1": "DK1_EUR_per_MWh", "DK2": "DK2_EUR_per_MWh"})
-        )
-        hourly.to_csv(f"dayahead_DK1_DK2_{year}_hourly.csv")
-        print(year, "rows:", len(df), "| hourly rows:", len(hourly))
+    df.to_csv("dayahead_DK1_DK2_2025.csv", index=False)
+    hourly = (
+        df.set_index("TimeUTC")
+        .groupby("PriceArea")["DayAheadPriceEUR"]
+        .resample("1h")
+        .mean()
+        .unstack(0)
+        .rename(columns={"DK1": "DK1_EUR_per_MWh", "DK2": "DK2_EUR_per_MWh"})
+    )
+    hourly.to_csv("dayahead_DK1_DK2_2025_hourly.csv")
+    print("2025 rows:", len(df), "| hourly rows:", len(hourly))
 
 
 if __name__ == "__main__":

@@ -98,6 +98,10 @@ variables > Actions**: `TIMESCALE_HOST`, `TIMESCALE_PORT`,
 connection values from Aiven's service overview and keep the password in a
 secret. The workflow enables SSL with `TIMESCALE_SSL=require`.
 
+To download the 2025 CSVs, open **Actions > Export 2025 prices from Aiven**
+and select **Run workflow**. When it finishes, open the run and download the
+`dayahead-dk1-dk2-2025-csv` artifact. It contains the detailed and hourly CSVs.
+
 ## 3. Connect it to your MCP client
 
 ### Claude Desktop / Claude Code
