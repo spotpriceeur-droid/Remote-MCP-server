@@ -1,0 +1,45 @@
+nohup: ignoring input
+2026-09-16 03:37:46,049 [INFO] api.base_client: Downloaded 20000 records so far from https://api.energidataservice.dk/dataset/Elspotprices...
+2026-09-16 03:37:46,065 [WARNING] api.base_client: Rate limited by https://api.energidataservice.dk/dataset/Elspotprices (attempt 1/5); waiting 300.0s before retrying.
+2026-09-16 03:42:46,336 [INFO] api.base_client: Downloaded 30415 records so far from https://api.energidataservice.dk/dataset/Elspotprices...
+2026-09-16 03:42:46,616 [WARNING] api.base_client: Rate limited by https://api.energidataservice.dk/dataset/Elspotprices (attempt 1/5); waiting 300.0s before retrying.
+2026-09-16 03:47:47,137 [INFO] api.base_client: Downloaded 20000 records so far from https://api.energidataservice.dk/dataset/Elspotprices...
+2026-09-16 03:47:47,152 [WARNING] api.base_client: Rate limited by https://api.energidataservice.dk/dataset/Elspotprices (attempt 1/5); waiting 300.0s before retrying.
+2026-09-16 03:52:48,352 [INFO] api.base_client: Downloaded 30905 records so far from https://api.energidataservice.dk/dataset/Elspotprices...
+2026-09-16 03:52:48,824 [WARNING] api.base_client: Rate limited by https://api.energidataservice.dk/dataset/Elspotprices (attempt 1/5); waiting 299.0s before retrying.
+2026-09-16 03:57:48,139 [INFO] api.base_client: Downloaded 20000 records so far from https://api.energidataservice.dk/dataset/Elspotprices...
+2026-09-16 03:57:48,155 [WARNING] api.base_client: Rate limited by https://api.energidataservice.dk/dataset/Elspotprices (attempt 1/5); waiting 300.0s before retrying.
+2026-09-16 04:02:48,440 [INFO] api.base_client: Downloaded 30583 records so far from https://api.energidataservice.dk/dataset/Elspotprices...
+2026-09-16 04:02:49,097 [WARNING] api.base_client: Rate limited by https://api.energidataservice.dk/dataset/Elspotprices (attempt 1/5); waiting 300.0s before retrying.
+2026-09-16 04:07:49,393 [INFO] api.base_client: Downloaded 20000 records so far from https://api.energidataservice.dk/dataset/Elspotprices...
+2026-09-16 04:07:49,409 [WARNING] api.base_client: Rate limited by https://api.energidataservice.dk/dataset/Elspotprices (attempt 1/5); waiting 300.0s before retrying.
+2026-09-16 04:12:49,744 [INFO] api.base_client: Downloaded 30905 records so far from https://api.energidataservice.dk/dataset/Elspotprices...
+2026-09-16 04:12:50,835 [WARNING] api.base_client: Rate limited by https://api.energidataservice.dk/dataset/Elspotprices (attempt 1/5); waiting 299.0s before retrying.
+2026-09-16 04:17:50,184 [INFO] api.base_client: Downloaded 20000 records so far from https://api.energidataservice.dk/dataset/Elspotprices...
+2026-09-16 04:17:50,198 [WARNING] api.base_client: Rate limited by https://api.energidataservice.dk/dataset/Elspotprices (attempt 1/5); waiting 300.0s before retrying.
+2026-09-16 04:22:50,667 [INFO] api.base_client: Downloaded 29523 records so far from https://api.energidataservice.dk/dataset/Elspotprices...
+2026-09-16 04:22:51,829 [WARNING] api.base_client: Rate limited by https://api.energidataservice.dk/dataset/Elspotprices (attempt 1/5); waiting 299.0s before retrying.
+2026-09-16 04:27:52,012 [INFO] api.base_client: Downloaded 20000 records so far from https://api.energidataservice.dk/dataset/Elspotprices...
+2026-09-16 04:27:52,027 [WARNING] api.base_client: Rate limited by https://api.energidataservice.dk/dataset/Elspotprices (attempt 1/5); waiting 299.0s before retrying.
+2026-09-16 04:32:51,300 [INFO] api.base_client: Downloaded 26490 records so far from https://api.energidataservice.dk/dataset/Elspotprices...
+2026-09-16 04:32:52,799 [WARNING] api.base_client: Rate limited by https://api.energidataservice.dk/dataset/Elspotprices (attempt 1/5); waiting 299.0s before retrying.
+2026-09-16 04:37:52,046 [INFO] api.base_client: Downloaded 2136 records so far from https://api.energidataservice.dk/dataset/Elspotprices...
+Fetched 30415 records for 2022-09-16 -> 2023-03-16 (running total: 30415)
+Saved 30415 records to elspot_records_backup.pkl and elspot_records_backup.json
+Fetched 30905 records for 2023-03-16 -> 2023-09-16 (running total: 61320)
+Saved 61320 records to elspot_records_backup.pkl and elspot_records_backup.json
+Fetched 30583 records for 2023-09-16 -> 2024-03-16 (running total: 91903)
+Saved 91903 records to elspot_records_backup.pkl and elspot_records_backup.json
+Fetched 30905 records for 2024-03-16 -> 2024-09-16 (running total: 122808)
+Saved 122808 records to elspot_records_backup.pkl and elspot_records_backup.json
+Fetched 29523 records for 2024-09-16 -> 2025-03-16 (running total: 152331)
+Saved 152331 records to elspot_records_backup.pkl and elspot_records_backup.json
+Fetched 26490 records for 2025-03-16 -> 2025-09-16 (running total: 178821)
+Saved 178821 records to elspot_records_backup.pkl and elspot_records_backup.json
+Fetched 2136 records for 2025-09-16 -> 2025-10-01 (running total: 180957)
+Saved 180957 records to elspot_records_backup.pkl and elspot_records_backup.json
+
+Total fetched: 180957 records
+Saved 180957 records to elspot_records_backup.pkl and elspot_records_backup.json
+
+Done. Nothing written to the database yet — run ingest_elspot.py next.
