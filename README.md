@@ -91,6 +91,9 @@ The workflow in `.github/workflows/refresh-aiven.yml` runs the ingestion
 pipeline every six hours (UTC), and can also be started manually from the
 repository's Actions tab. It connects directly to Aiven; it does not call the
 Render `/refresh` URL.
+It resumes from the latest stored timestamp for each zone and source, fetching
+only a 24-hour overlap for updates; a source with no stored rows is backfilled
+from its configured start date.
 
 Add these repository Actions secrets under **Settings > Secrets and
 variables > Actions**: `TIMESCALE_HOST`, `TIMESCALE_PORT`,

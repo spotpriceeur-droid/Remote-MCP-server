@@ -318,9 +318,9 @@ def query_prices(zone: str, start: str, end: str) -> str:
 @mcp.tool()
 def refresh_database() -> str:
     """
-    Runs the full ingestion pipeline (DayAheadPrices + interpolated
-    Elspotprices, all zones) into TimescaleDB, bringing the database up to
-    the current moment. Requires TimescaleDB to be running (see README).
+    Incrementally refreshes DayAheadPrices and interpolated Elspotprices
+    in TimescaleDB, fetching a 24-hour overlap per zone to repair recent gaps.
+    Requires TimescaleDB to be running (see README).
     Use this before other tools if you want subsequent queries to hit the
     database instead of falling back to live API calls every time.
     """
@@ -333,22 +333,69 @@ def refresh_database() -> str:
         return f"Could not connect to TimescaleDB: {exc}"
 
     results = []
+    overlap = pd.Timedelta(hours=24)
+
+    def start_for(zone: str, source: str, initial_start: str) -> str:
+        latest = repo.latest_timestamp(zone=zone, source=source)
+        if latest is None:
+            return initial_start
+
+        latest_ts = pd.Timestamp(latest)
+        if latest_ts.tzinfo is None:
+            latest_ts = latest_ts.tz_localize("UTC")
+        else:
+            latest_ts = latest_ts.tz_convert("UTC")
+        start_ts = max(
+            pd.Timestamp(initial_start, tz="UTC"),
+            (latest_ts - overlap).floor("h"),
+        )
+        return start_ts.strftime("%Y-%m-%dT%H:%M")
+
     try:
         dayahead_client = DayAheadPricesClient(config.api)
-        records = dayahead_client.fetch(config.api.dayahead_start, config.api.end)
-        written = repo.write_records(records, extra_fields={"source": "dayahead_real"})
-        results.append(f"DayAheadPrices: {written} records written.")
+        dayahead_written = 0
+        for zone in KNOWN_ZONES:
+            start = start_for(zone, "dayahead_real", config.api.dayahead_start)
+            if pd.Timestamp(start) >= pd.Timestamp(config.api.end):
+                continue
+            try:
+                records = dayahead_client.fetch(start, config.api.end, zone)
+            except NoDataError:
+                continue
+            dayahead_written += repo.write_records(
+                records, extra_fields={"source": "dayahead_real"}
+            )
+        results.append(f"DayAheadPrices: {dayahead_written} records written or updated.")
     except PipelineError as exc:
         results.append(f"DayAheadPrices stage failed: {exc}")
 
     try:
         elspot_client = ElspotpricesClient(config.api)
         interpolator = Interpolator(config.pipeline)
-        records = elspot_client.fetch(config.api.elspot_start, config.api.end)
-        df_15min = interpolator.to_15min(records)
-        df_before_cutoff = interpolator.filter_before_cutoff(df_15min)
-        written = repo.write_dataframe(df_before_cutoff, extra_fields={"source": "interpolated_from_elspotprices"})
-        results.append(f"Elspotprices (interpolated): {written} records written.")
+        elspot_end = min(
+            pd.Timestamp(config.api.end),
+            pd.Timestamp(config.pipeline.real_data_cutoff),
+        ).strftime("%Y-%m-%dT%H:%M")
+        elspot_written = 0
+        for zone in KNOWN_ZONES:
+            start = start_for(
+                zone, "interpolated_from_elspotprices", config.api.elspot_start
+            )
+            if pd.Timestamp(start) >= pd.Timestamp(elspot_end):
+                continue
+            try:
+                records = elspot_client.fetch(start, elspot_end, zone)
+            except NoDataError:
+                continue
+            df_15min = interpolator.to_15min(records)
+            df_before_cutoff = interpolator.filter_before_cutoff(df_15min)
+            elspot_written += repo.write_dataframe(
+                df_before_cutoff,
+                extra_fields={"source": "interpolated_from_elspotprices"},
+            )
+        results.append(
+            f"Elspotprices (interpolated): {elspot_written} records written or updated."
+        )
     except PipelineError as exc:
         results.append(f"Elspotprices stage failed: {exc}")
 

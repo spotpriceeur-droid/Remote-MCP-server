@@ -213,12 +213,22 @@ class TimescaleRepository:
             for r in rows
         ]
 
-    def latest_timestamp(self, zone: Optional[str] = None) -> Optional[Any]:
+    def latest_timestamp(
+        self,
+        zone: Optional[str] = None,
+        source: Optional[str] = None,
+    ) -> Optional[Any]:
         """Returns the max time_utc currently stored (optionally per zone),
-        or None if the table is empty. Used to figure out how far back an
-        API top-up fetch needs to go to bring the DB up to 'now'."""
-        where = "WHERE zone = %s" if zone else ""
-        params = [zone] if zone else []
+        optionally filtered by source, or None if no matching rows exist."""
+        where_clauses = []
+        params = []
+        if zone:
+            where_clauses.append("zone = %s")
+            params.append(zone)
+        if source:
+            where_clauses.append("source = %s")
+            params.append(source)
+        where = f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
         query = f"SELECT MAX(time_utc) FROM {self.config.table_name} {where};"
         try:
             with self.conn.cursor() as cur:
